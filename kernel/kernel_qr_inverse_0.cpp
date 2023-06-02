@@ -49,124 +49,89 @@ func_matrixAddition(hls::stream<MATRIX_IN_T>& matrixAStrm,
 
 
 
-// 只有mult
+void
+func_matrixAddition2(hls::stream<MATRIX_IN_T>& matrixAStrm,
+		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm,
+					float var_Noise)
+{
+	MATRIX_IN_T A[ROWSCOLSA][ROWSCOLSA];
+	MATRIX_OUT_T Out1[ROWSCOLSA][ROWSCOLSA];
+	MATRIX_IN_T var_Noise_complex;
+	var_Noise_complex.real(var_Noise);
+	var_Noise_complex.imag(0.0);
 
-extern "C" int kernel_qr_inverse_0a(hls::stream<MATRIX_IN_T>& matrixAStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH) {
+    #pragma HLS inline
+    //#pragma HLS stream variable=Constant_out1 depth=ROWS_1
+	matrixAddition_assign_Ri:
+ 	for (int i = 0; i < ROWSCOLSA; i++) {
+ 	    for (int j = 0; j < ROWSCOLSA; j++) {
+ 	    		//#pragma HLS PIPELINE
+            A[i][j] = matrixAStrm.read();
+            if (i == j) {
+//            	Out1[i][j] = A[i][j] + (var_Noise,0.0f);
+            	Out1[i][j] = A[i][j] + var_Noise_complex;
 
-//    func_matrixMultiply(matrixAStrm, matrixMMSEH);
-	matrixMultiply<NoTranspose, ConjugateTranspose, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA,
-	MATRIX_IN_T, MATRIX_OUT_T>(matrixAStrm, matrixMMSEH);
-//    func_matrixAddition(matrixA_Mul_ATStrm,
-//    					matrixIStrm,
-//						matrixMMSEH);
+            } else {
+            	Out1[i][j] = A[i][j];
+            }
+//        	std::cout<<A[i][j]<<" "<<i << " " <<j<< std::endl;
+//        	std::cout<<Out1[i][j]<<std::endl;
+ 	    	matrixAddABStrm.write(Out1[i][j]);
 
-	int qr_inverse_return = 0;
-//    qr_inverse_return = func_qr_inverse(matrixA_Mul_ATStrm, matrixMMSEH);
-    return qr_inverse_return;
+    }
+}
 }
 
-
-
-//  只有inverse
-
-extern "C" int kernel_qr_inverse_00(hls::stream<MATRIX_IN_T>& matrixAStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH) {
-
-
-	int qr_inverse_return = 0;
-    qr_inverse_return = func_qr_inverse(matrixAStrm, matrixMMSEH);
-    return qr_inverse_return;
-}
-
-// inverse 和 add
-
-extern "C" int kernel_qr_inverse_01(hls::stream<MATRIX_IN_T>& matrixAStrm,
-									hls::stream<MATRIX_IN_T>& matrixIStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH) {
-
-//	hls::stream<MATRIX_OUT_T> matrixA_Mul_ATStrm;
-	hls::stream<MATRIX_OUT_T> matrixToInverse;
-
-
-//    func_matrixMultiply(matrixAStrm, matrixA_Mul_ATStrm);
-
-    func_matrixAddition(matrixAStrm,
-    					matrixIStrm,
-						matrixToInverse);
-
-	int qr_inverse_return = 0;
-    qr_inverse_return = func_qr_inverse(matrixToInverse, matrixMMSEH);
-    return qr_inverse_return;
-}
-
-
-
-// inverse 和 mult
-
-extern "C" int kernel_qr_inverse_0b(hls::stream<MATRIX_IN_T>& matrixAStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH) {
-
-#pragma HLS DATAFLOW
-
-	hls::stream<MATRIX_OUT_T> matrixA_Mul_ATStrm;
-#pragma HLS STREAM variable = matrixA_Mul_ATStrm depth = 9
-
-
-	matrixMultiply<NoTranspose, ConjugateTranspose, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA,
-	MATRIX_IN_T, MATRIX_OUT_T>(matrixAStrm, matrixA_Mul_ATStrm);
-//    func_matrixMultiply(matrixAStrm, matrixA_Mul_ATStrm);
-
-//    func_matrixAddition(matrixA_Mul_ATStrm,
-//    					matrixIStrm,
-//						matrixMMSEH);
-
-	int is_singular = 0;
-    xf::solver::qrInverse<ROWSCOLSA, MATRIX_IN_T, MATRIX_OUT_T>(matrixA_Mul_ATStrm, matrixMMSEH, is_singular);
-    return is_singular;
-}
-
-
-// add 和 mult
-
-extern "C" int kernel_qr_inverse_2(hls::stream<MATRIX_IN_T>& matrixAStrm,
-									hls::stream<MATRIX_IN_T>& matrixIStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH) {
-
-	hls::stream<MATRIX_OUT_T> matrixA_Mul_ATStrm;
-
-
-    func_matrixMultiply(matrixAStrm, matrixA_Mul_ATStrm);
-
-    func_matrixAddition(matrixA_Mul_ATStrm,
-    					matrixIStrm,
-						matrixMMSEH);
-
-	int qr_inverse_return = 0;
-//    qr_inverse_return = func_qr_inverse(matrixToInverse, matrixMMSEH);
-    return qr_inverse_return;
-}
-
-
-//  都有
 
 extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
-									hls::stream<MATRIX_IN_T>& matrixIStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH) {
+								   hls::stream<MATRIX_OUT_T>& matrixMMSEH,
+								   float var_Noise) {
 
 	hls::stream<MATRIX_OUT_T> matrixA_Mul_ATStrm;
 #pragma HLS STREAM variable = matrixA_Mul_ATStrm depth = 9
+
+
+//	hls::stream<MATRIX_IN_T> matrixIStrm;
+//#pragma HLS STREAM variable = matrixIStrm depth = 9
+
 	hls::stream<MATRIX_OUT_T> matrixToInverse;
 #pragma HLS STREAM variable = matrixToInverse depth = 9
 
+
+
 //    func_matrixMultiply(matrixAStrm, matrixA_Mul_ATStrm);
 	matrixMultiply<NoTranspose, ConjugateTranspose, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA,
 	MATRIX_IN_T, MATRIX_OUT_T>(matrixAStrm, matrixA_Mul_ATStrm);
 
-    func_matrixAddition(matrixA_Mul_ATStrm,
-    					matrixIStrm,
-						matrixToInverse);
 
+
+	// 单位矩阵
+//
+//    MATRIX_OUT_T I[ROWSCOLSA][ROWSCOLSA]; // The identity matrix to compare against
+//	// Create I to compare against later
+//	    for (int r = 0; r < ROWSCOLSA; r++) {
+//	        for (int c = 0; c < ROWSCOLSA; c++) {
+//	            if (r == c) {
+//	                I[r][c].real(var_Noise);
+//	                I[r][c].imag(0.0);
+//	            } else {
+//	                I[r][c] = 0.0;
+//	            }
+//	        }
+//	    }
+//
+//        for (int r = 0; r < ROWSCOLSA; r++) {
+//            for (int c = 0; c < ROWSCOLSA; c++) {
+//                matrixIStrm.write(I[r][c]);
+//            }
+//        }
+//	func_matrixAddition(matrixA_Mul_ATStrm,
+//    					matrixIStrm,
+//						matrixToInverse);
+
+	func_matrixAddition2(matrixA_Mul_ATStrm,
+							matrixToInverse,
+							var_Noise);
 	int is_singular = 0;
 //    qr_inverse_return = func_qr_inverse(matrixToInverse, matrixMMSEH);
     xf::solver::qrInverse<ROWSCOLSA, MATRIX_IN_T, MATRIX_OUT_T>(matrixToInverse, matrixMMSEH, is_singular);

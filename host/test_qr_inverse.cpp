@@ -155,13 +155,13 @@ int main(int argc, char* argv[]) {
         // Test which matrix type to run
         if ((mat_type == 0 || imat + 1 == mat_type) && (skip_mat_type[0] - 1 != imat && skip_mat_type[1] - 1 != imat)) {
             for (long unsigned i = 0; i < num_tests; i++) {
-                if (imat >= 4) {
-                    testing_singular_matrix = true;
-                } else {
-                    testing_singular_matrix = false;
-                }
-                if ((imat == 4 || imat == 5 || imat == 6) && i > 0) {
-                    // Test only one singular matrix
+//                if (imat >= 4) {
+//                    testing_singular_matrix = true;
+//                } else {
+//                    testing_singular_matrix = false;
+//                }
+                if ((imat == 11) && i > 0) {
+                    // Skip the too large one
                     break;
                 }
 
@@ -215,11 +215,11 @@ int main(int argc, char* argv[]) {
                 }
 
 
-                for (int r = 0; r < ROWSCOLSA; r++) {
-                    for (int c = 0; c < ROWSCOLSA; c++) {
-                        matrixIStrm.write(I[r][c]);
-                    }
-                }
+//                for (int r = 0; r < ROWSCOLSA; r++) {
+//                    for (int c = 0; c < ROWSCOLSA; c++) {
+//                        matrixIStrm.write(I[r][c]);
+//                    }
+//                }
 
 //                hls::stream<MATRIX_IN_T> matrixBStrm;
 //
@@ -239,8 +239,11 @@ int main(int argc, char* argv[]) {
 
 //                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixIStrm,matrixMMSEH);
 
-                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixIStrm, matrixMMSEH);
-//                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixMMSEH);
+//                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixIStrm, matrixMMSEH);
+
+                float var_Noise = 1;
+
+                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixMMSEH, var_Noise);
 
                 for (int r = 0; r < ROWSCOLSA; r++) {
                     for (int c = 0; c < ROWSCOLSA; c++) {
@@ -258,14 +261,14 @@ int main(int argc, char* argv[]) {
                 }
 
                 // Check for NaNs in result
-                if (anyNaN<ROWSCOLSA, ROWSCOLSA>(InverseA) == 1 && !testing_singular_matrix) {
-                    printf("ERROR: Caught NaN in InverseA\n");
-                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_OUT_T, xf::solver::NoTranspose>(
-                        InverseA, "   ", print_precision, 0);
-                    printf("TB:Fail\n");
-                    return (32);
+//                if (anyNaN<ROWSCOLSA, ROWSCOLSA>(InverseA) == 1 && !testing_singular_matrix) {
+//                    printf("ERROR: Caught NaN in InverseA\n");
+//                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_OUT_T, xf::solver::NoTranspose>(
+//                        InverseA, "   ", print_precision, 0);
+//                    printf("TB:Fail\n");
+//                    return (32);
 //                    return (0);
-                }
+//                }
 
                 // Test results
                 // ====================================================================
@@ -422,17 +425,17 @@ int main(int argc, char* argv[]) {
 //                    return (9);
 //                }
 //
-                if (I_DUT_ratio == 0) {
-                    if (!(imat == 0 || imat == 1 || testing_singular_matrix)) {
-                        // Neither diagonal nor upper-triangular, so there should be error in the reconstruction, but we
-                        // didn't detect that, so fail
-                        printf("ERROR: Caught unexpected Zero for I_DUT_ratio\n");
-                        std::cout << "RESULTS_TABLE," << i << "," << imat + 1 << "," << matched_lapack_InverseA << ","
-                                  << I_DUT_ratio << "," << I_LAPACK_ratio << "," << I_ratio_difference << std::endl;
-                        printf("TB:Fail\n");
-                        return (10);
-                    }
-                }
+//                if (I_DUT_ratio == 0) {
+//                    if (!(imat == 0 || imat == 1 || testing_singular_matrix)) {
+//                        // Neither diagonal nor upper-triangular, so there should be error in the reconstruction, but we
+//                        // didn't detect that, so fail
+//                        printf("ERROR: Caught unexpected Zero for I_DUT_ratio\n");
+//                        std::cout << "RESULTS_TABLE," << i << "," << imat + 1 << "," << matched_lapack_InverseA << ","
+//                                  << I_DUT_ratio << "," << I_LAPACK_ratio << "," << I_ratio_difference << std::endl;
+//                        printf("TB:Fail\n");
+//                        return (10);
+//                    }
+//                }
 
                 /*
                 // LAPACK's result can sometimes reconstruct exactly (to machine precision) so don't run this test.

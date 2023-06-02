@@ -32,8 +32,15 @@ func_matrixAddition(hls::stream<MATRIX_IN_T>& matrixAStrm,
 					hls::stream<MATRIX_IN_T>& matrixBStrm,
 		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm);
 
-extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_IN_T>& I, hls::stream<MATRIX_OUT_T>& B);
-//extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_OUT_T>& B);
+void
+func_matrixAddition2(hls::stream<MATRIX_IN_T>& matrixAStrm,
+		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm,
+					float var_Noise);
+
+//extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_IN_T>& I, hls::stream<MATRIX_OUT_T>& B);
+extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
+								   hls::stream<MATRIX_OUT_T>& matrixMMSEH,
+								   float var_Noise);
 
 
 //extern "C" int
