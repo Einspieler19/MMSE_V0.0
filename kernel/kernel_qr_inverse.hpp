@@ -25,12 +25,23 @@ const int ROWSCOLSA = QR_INV_ROWSCOLS;
 
 extern "C" int func_matrixMultiply(hls::stream<MATRIX_IN_T>& A,
                                    hls::stream<MATRIX_OUT_T>& B);
-extern "C" int
-kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_OUT_T>& B);
-
+extern "C" int func_qr_inverse(hls::stream<MATRIX_IN_T>& matrixAStrm,
+                                   hls::stream<MATRIX_OUT_T>& matrixInverseAStrm);
 void
 func_matrixAddition(hls::stream<MATRIX_IN_T>& matrixAStrm,
 					hls::stream<MATRIX_IN_T>& matrixBStrm,
 		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm);
+
+extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_IN_T>& I, hls::stream<MATRIX_OUT_T>& B);
+//extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_OUT_T>& B);
+
+
+//extern "C" int
+//kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_IN_T>& I, hls::stream<MATRIX_OUT_T>& B);
+
+extern "C" int kernel_qr_inverse_1(hls::stream<MATRIX_IN_T>& matrixAStrm,
+									hls::stream<MATRIX_IN_T>& matrixIStrm,
+								   hls::stream<MATRIX_OUT_T>& matrixMMSEH);
+
 
 #endif
