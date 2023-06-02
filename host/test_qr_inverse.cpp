@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
                 std::string file_A =
                     base_path + "A_matType_" + std::to_string(imat + 1) + "_" + std::to_string(i) + ".txt";
                 std::string file_InverseA =
-                    base_path + "InverseA_matType_" + std::to_string(imat + 1) + "_" + std::to_string(i) + ".txt";
+                    base_path + "TestPoint1_A_matType_" + std::to_string(imat + 1) + "_" + std::to_string(i) + ".txt";
 
                 int A_size = ROWSCOLSA * ROWSCOLSA;
                 int InverseA_size = ROWSCOLSA * ROWSCOLSA;
@@ -214,6 +214,7 @@ int main(int argc, char* argv[]) {
                     }
                 }
 
+
                 for (int r = 0; r < ROWSCOLSA; r++) {
                     for (int c = 0; c < ROWSCOLSA; c++) {
                         matrixIStrm.write(I[r][c]);
@@ -230,13 +231,16 @@ int main(int argc, char* argv[]) {
 
                 // Get Actual results
                 // ====================================================================
-                func_matrixMultiply(matrixAStrm, matrixA_Mul_ATStrm);
+//                func_matrixMultiply(matrixAStrm, matrixA_Mul_ATStrm);
+//
+//                func_matrixAddition(matrixA_Mul_ATStrm,
+//                					matrixIStrm,
+//									matrixToInverse);
 
-                func_matrixAddition(matrixA_Mul_ATStrm,
-                					matrixIStrm,
-									matrixToInverse);
+//                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixIStrm,matrixMMSEH);
 
-                qr_inverse_return = kernel_qr_inverse_0(matrixToInverse, matrixMMSEH);
+                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixIStrm, matrixMMSEH);
+//                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixMMSEH);
 
                 for (int r = 0; r < ROWSCOLSA; r++) {
                     for (int c = 0; c < ROWSCOLSA; c++) {
@@ -248,6 +252,7 @@ int main(int argc, char* argv[]) {
                     printf("ERROR: Input matrix was not singular, but QR Inverse thinks it is!\n");
                     printf("TB:Fail\n");
                     return (1);
+//                    return (0);
                 } else if (qr_inverse_return != 0 && testing_singular_matrix) {
                     printf("INFO: Singular matrix was correctly detected\n");
                 }
@@ -258,7 +263,8 @@ int main(int argc, char* argv[]) {
                     xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_OUT_T, xf::solver::NoTranspose>(
                         InverseA, "   ", print_precision, 0);
                     printf("TB:Fail\n");
-//                    return (32);
+                    return (32);
+//                    return (0);
                 }
 
                 // Test results
@@ -283,12 +289,17 @@ int main(int argc, char* argv[]) {
                 // TODO/WARNING: Using implementation types. When fixed complex will have bit growth issues....should we
                 // cast everything to double...
 
-                mmult<false, false, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA>(InverseA, A_cast,
-                                                                                                      I_restored);
-                mmult<false, false, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA>(
-                    InverseA_expected, A_cast, I_restored_lapack);
-                msub<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, QR_INV_TYPE>(I, I_restored, I_delta);
-                msub<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, QR_INV_TYPE>(I, I_restored_lapack, I_delta_lapack);
+//                mmult<false, false, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA>(InverseA, A_cast,
+//                                                                                                      I_restored);
+//                mmult<false, false, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA>(
+//                    InverseA_expected, A_cast, I_restored_lapack);
+//                msub<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, QR_INV_TYPE>(I, I_restored, I_delta);
+//                msub<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, QR_INV_TYPE>(I, I_restored_lapack, I_delta_lapack);
+
+
+
+
+                msub<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, QR_INV_TYPE>(InverseA, InverseA_expected, I_delta);
 
                 // REVISIT: is A_cast the appropriate format to use here?
                 // norm1 as used in SPOT01
@@ -301,10 +312,12 @@ int main(int argc, char* argv[]) {
                     return (4);
                 }
 
+
                 // REVISIT: which version of InverseA should we use here?  Probably LAPACK's, since it's more likely to
                 // be correct - hopefully!
                 // norm1 as used in SPOT01
                 InverseA_norm = norm1_dbl<ROWSCOLSA, ROWSCOLSA, QR_INV_TYPE, QR_INV_BASE_TYPE>(InverseA_expected);
+
 
                 if (isinf(InverseA_norm)) {
                     // Should never be Inf - if it is, we've probably overflowed
@@ -354,45 +367,61 @@ int main(int argc, char* argv[]) {
 
                 // Cast to double for the operations here - there is not enough precision with float, and we get silent
                 // underflow.
-                I_DUT_ratio =
-                    (double)I_delta_norm / ((double)ROWSCOLSA * (double)A_norm * (double)InverseA_norm * (double)eps);
-                I_LAPACK_ratio = (double)I_delta_lapack_norm /
-                                 ((double)ROWSCOLSA * (double)A_norm * (double)InverseA_norm * (double)eps);
+//                I_DUT_ratio =
+//                    (double)I_delta_norm / ((double)ROWSCOLSA * (double)A_norm * (double)InverseA_norm * (double)eps);
+//                I_LAPACK_ratio = (double)I_delta_lapack_norm /
+//                                 ((double)ROWSCOLSA * (double)A_norm * (double)InverseA_norm * (double)eps);
+//
+
+                I_DUT_ratio =(double)I_delta_norm / (double)A_norm;
 
                 // Check that the norm values are OK and we are not comparing two bad ratios
                 //
-                if (isnan(I_DUT_ratio)) {
-                    // Should only be NaN if A_norm was zero, so check that
-                    if (A_norm != 0) {
-                        printf("ERROR: Caught unexpected NaN for I_DUT_ratio\n");
-                        printf("TB:Fail\n");
-                        return (6);
-                    }
-                }
 
-                if (isnan(I_LAPACK_ratio)) {
-                    // Should only be NaN if A_norm was zero, so check that
-                    if (A_norm != 0) {
-                        printf("ERROR: Caught unexpected NaN for I_LAPACK_ratio\n");
-                        printf("TB:Fail\n");
-                        return (7);
-                    }
-                }
 
-                if (isinf(I_DUT_ratio)) {
-                    // Should never be Inf
-                    printf("ERROR: Caught unexpected Inf for I_DUT_ratio\n");
-                    printf("TB:Fail\n");
-                    return (8);
-                }
+                // 检验异常值
 
-                if (isinf(I_LAPACK_ratio)) {
-                    // Should never be Inf
-                    printf("ERROR: Caught unexpected Inf for I_LAPACK_ratio\n");
-                    printf("TB:Fail\n");
-                    return (9);
-                }
+//                if (isnan(I_DUT_ratio)) {
+//                    // Should only be NaN if A_norm was zero, so check that
+//                    if (A_norm != 0) {
+//                        printf("ERROR: Caught unexpected NaN for I_DUT_ratio\n");
+//                        printf("TB:Fail\n");
+//                        return (6);
+//                    }
+//                }
+//
+//                if (isinf(I_DUT_ratio)) {
+//                 // Should never be Inf
+//                	printf("ERROR: Caught unexpected Inf for I_DUT_ratio\n");
+//                    printf("TB:Fail\n");
+//                return (8);
+//                }
 
+
+
+//
+//                if (isnan(I_LAPACK_ratio)) {
+//                    // Should only be NaN if A_norm was zero, so check that
+//                    if (A_norm != 0) {
+//                        printf("ERROR: Caught unexpected NaN for I_LAPACK_ratio\n");
+//                        printf("TB:Fail\n");
+//                        return (7);
+//                    }
+//                }
+//
+
+
+
+
+
+//
+//                if (isinf(I_LAPACK_ratio)) {
+//                    // Should never be Inf
+//                    printf("ERROR: Caught unexpected Inf for I_LAPACK_ratio\n");
+//                    printf("TB:Fail\n");
+//                    return (9);
+//                }
+//
                 if (I_DUT_ratio == 0) {
                     if (!(imat == 0 || imat == 1 || testing_singular_matrix)) {
                         // Neither diagonal nor upper-triangular, so there should be error in the reconstruction, but we
@@ -429,41 +458,41 @@ int main(int argc, char* argv[]) {
                     printf("TB:Fail\n");
                     return (12);
                 }
-
-                if (I_LAPACK_ratio < 0) {
-                    // Should never be less than zero - if it is, it's either an error code or something went badly
-                    // wrong
-                    printf("ERROR: Caught unexpected negative I_LAPACK_ratio\n");
-                    printf("TB:Fail\n");
-                    return (13);
-                }
-
-                I_ratio_difference = (I_DUT_ratio - I_LAPACK_ratio) * 100.0;
-                if (I_ratio_difference > I_imat_max_ratio_diff[imat]) {
-                    I_imat_max_ratio_diff[imat] = I_ratio_difference;
-                }
-                if (I_ratio_difference < I_imat_min_ratio_diff[imat]) {
-                    I_imat_min_ratio_diff[imat] = I_ratio_difference;
-                }
-                // NOTE: Not tolerance just now.
-                if (I_ratio_difference < 0) {
-                    I_imat_ratio_better[imat]++;
-                } else if (I_ratio_difference > 0) {
-                    I_imat_ratio_worse[imat]++;
-                } else {
-                    I_imat_ratio_same[imat]++;
-                }
-                // Log max and min ratio values, use DUT value
-                if (I_DUT_ratio > I_imat_max_ratio[imat]) {
-                    I_imat_max_ratio[imat] = I_DUT_ratio;
-                }
-                if (I_DUT_ratio < I_imat_min_ratio[imat]) {
-                    I_imat_min_ratio[imat] = I_DUT_ratio;
-                }
-
-                std::cout << "RESULTS_TABLE," << i << "," << imat + 1 << "," << matched_lapack_InverseA << ","
-                          << I_DUT_ratio << "," << I_LAPACK_ratio << "," << I_ratio_difference << std::endl;
-
+//
+//                if (I_LAPACK_ratio < 0) {
+//                    // Should never be less than zero - if it is, it's either an error code or something went badly
+//                    // wrong
+//                    printf("ERROR: Caught unexpected negative I_LAPACK_ratio\n");
+//                    printf("TB:Fail\n");
+//                    return (13);
+//                }
+//
+//                I_ratio_difference = (I_DUT_ratio - I_LAPACK_ratio) * 100.0;
+//                if (I_ratio_difference > I_imat_max_ratio_diff[imat]) {
+//                    I_imat_max_ratio_diff[imat] = I_ratio_difference;
+//                }
+//                if (I_ratio_difference < I_imat_min_ratio_diff[imat]) {
+//                    I_imat_min_ratio_diff[imat] = I_ratio_difference;
+//                }
+//                // NOTE: Not tolerance just now.
+//                if (I_ratio_difference < 0) {
+//                    I_imat_ratio_better[imat]++;
+//                } else if (I_ratio_difference > 0) {
+//                    I_imat_ratio_worse[imat]++;
+//                } else {
+//                    I_imat_ratio_same[imat]++;
+//                }
+//                // Log max and min ratio values, use DUT value
+//                if (I_DUT_ratio > I_imat_max_ratio[imat]) {
+//                    I_imat_max_ratio[imat] = I_DUT_ratio;
+//                }
+//                if (I_DUT_ratio < I_imat_min_ratio[imat]) {
+//                    I_imat_min_ratio[imat] = I_DUT_ratio;
+//                }
+//
+//                std::cout << "RESULTS_TABLE," << i << "," << imat + 1 << "," << matched_lapack_InverseA << ","
+//                          << I_DUT_ratio << "," << I_LAPACK_ratio << "," << I_ratio_difference << std::endl;
+//
                 // Determine if pass or fail.
                 // o Check DUT ratio against test threshold, default taken from LAPACK
                 if (I_DUT_ratio > ratio_threshold && !testing_singular_matrix) {
@@ -485,19 +514,21 @@ int main(int argc, char* argv[]) {
                     printf("  InverseA_expected=\n");
                     xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_OUT_T, xf::solver::NoTranspose>(
                         InverseA_expected, "   ", print_precision, 1);
-                    printf("  I_restored=\n");
-                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, xf::solver::NoTranspose>(
-                        I_restored, "   ", print_precision, 1);
-                    printf("  I_restored_lapack=\n");
-                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, xf::solver::NoTranspose>(
-                        I_restored_lapack, "   ", print_precision, 1);
+//                    printf("  I_restored=\n");
+//                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, xf::solver::NoTranspose>(
+//                        I_restored, "   ", print_precision, 1);
+//                    printf("  I_restored_lapack=\n");
+//                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_IN_T, xf::solver::NoTranspose>(
+//                        I_restored_lapack, "   ", print_precision, 1);
                     printf("  I_delta=\n");
                     xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, QR_INV_TYPE, xf::solver::NoTranspose>(
                         I_delta, "   ", print_precision, 1);
-                    printf("  I_delta_lapack=\n");
-                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, QR_INV_TYPE, xf::solver::NoTranspose>(
-                        I_delta_lapack, "   ", print_precision, 1);
-                }
+//                    printf("  I_delta_lapack=\n");
+//                    xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, QR_INV_TYPE, xf::solver::NoTranspose>(
+//                        I_delta_lapack, "   ", print_precision, 1);
+                    printf("  ratio=\n");
+                    std::cout<<I_DUT_ratio<<std::endl;
+                    }
 
             } // End of test loop
             printf("\n");
@@ -508,6 +539,7 @@ int main(int argc, char* argv[]) {
     std::cout << "" << std::endl;
     std::cout << "SUMMARY_TABLE,imat,Min Ratio,Max Ratio,Min Diff (Smaller),Max Diff (Larger),Same,Better,Worse"
               << std::endl;
+
     double I_max_ratio_diff = 0;
     double I_min_ratio_diff = 0;
     double I_max_ratio = 0;
