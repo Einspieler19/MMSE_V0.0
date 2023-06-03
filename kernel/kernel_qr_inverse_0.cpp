@@ -129,9 +129,11 @@ extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
 //    					matrixIStrm,
 //						matrixToInverse);
 
+
 	func_matrixAddition2(matrixA_Mul_ATStrm,
 							matrixToInverse,
 							var_Noise);
+
 	int is_singular = 0;
 //    qr_inverse_return = func_qr_inverse(matrixToInverse, matrixMMSEH);
     xf::solver::qrInverse<ROWSCOLSA, MATRIX_IN_T, MATRIX_OUT_T>(matrixToInverse, matrixMMSEH, is_singular);
