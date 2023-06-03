@@ -105,11 +105,11 @@ void qrInverse(hls::stream<InputType>& matrixAStrm, hls::stream<OutputType>& mat
 #pragma HLS DATAFLOW
     // Define intermediate buffers
     hls::stream<typename QRInverseTraits::InternalType> matrixQStrm;
-#pragma HLS STREAM variable = matrixQStrm depth = 16
+#pragma HLS STREAM variable = matrixQStrm depth = RowsColsA*RowsColsA
     hls::stream<typename QRInverseTraits::InternalType> matrixRStrm;
-#pragma HLS STREAM variable = matrixRStrm depth = 16
+#pragma HLS STREAM variable = matrixRStrm depth = RowsColsA*RowsColsA
     hls::stream<typename QRInverseTraits::InternalType> matrixInverseRStrm;
-#pragma HLS STREAM variable = matrixInverseRStrm depth = 16
+#pragma HLS STREAM variable = matrixInverseRStrm depth = RowsColsA*RowsColsA
 
     // Run QR factorization, get upper-triangular result in R, orthogonal/unitary matrix Q
     const bool TRANSPOSED_Q = true; // Q is produced in transpose form such that Q*A = R

@@ -28,11 +28,11 @@ int main() {
     double ratio_threshold = 30.0;
     // ratio多少算是差别太大
 
-    double mat_type = 0; // Specify to only run a single matrix type.
+    double mat_type = 13; // Specify to only run a single matrix type.
 	// 0:全测试
 	// n:第n个测试
 
-    unsigned print_precision = 10;
+   unsigned print_precision = 10;
 
    unsigned allowed_ulp_mismatch = 0;
 	//调用matrices equal的参数
@@ -137,6 +137,7 @@ int main() {
                 for (int r = 0; r < ROWSCOLSA; r++) {
                     for (int c = 0; c < ROWSCOLSA; c++) {
                         A_cast[r][c] = A[r][c];
+                        std::cout<<A[r][c]<<std::endl;
                     }
                 }
 
@@ -171,7 +172,8 @@ int main() {
 
 
 
-//                 Check for NaNs in result
+//              Check for NaNs in result
+
                 if (anyNaN<ROWSCOLSA, ROWSCOLSA>(Weights) == 1 && imat != 10) {
                     printf("ERROR: Caught NaN in Weights\n");
                     xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, MATRIX_OUT_T, xf::solver::NoTranspose>(

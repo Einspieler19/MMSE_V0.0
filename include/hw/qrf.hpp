@@ -707,6 +707,7 @@ void qrf_alt(hls::stream<InputType>& matrixAStrm,
         exit(1);
     }
 
+
     // Declare the ROMs defining the processing sequence
     static const qrf_alt_config<RowsA, ColsA, InputType> CONFIG;
 
@@ -721,7 +722,8 @@ void qrf_alt(hls::stream<InputType>& matrixAStrm,
 #pragma HLS ARRAY_PARTITION variable = r_i cyclic dim = 2 factor = QRF_TRAITS::UNROLL_FACTOR
 
     hls::stream<int> to_rot[3];
-#pragma HLS STREAM variable = to_rot depth = RowsA / 2
+
+#pragma HLS STREAM variable = to_rot depth = (RowsA/2)
     int seq_cnt = 0;
     int extra_pass = 0;
     int extra_pass2 = 0;
@@ -730,7 +732,8 @@ void qrf_alt(hls::stream<InputType>& matrixAStrm,
     OutputType G[2][2];
     OutputType mag = 0;
     hls::stream<OutputType> rotations[5];
-#pragma HLS STREAM variable = rotations depth = RowsA / 2
+
+#pragma HLS STREAM variable = rotations depth = (RowsA/2)
     OutputType G_delay[2][2];
     OutputType mag_delay;
 
@@ -760,7 +763,7 @@ px:
     for (int batch_num = 0; batch_num < CONFIG.NUM_BATCHES; batch_num++) {
     calc_rotations:
         for (int px_cnt = 0; px_cnt < CONFIG.BATCH_CNTS[batch_num]; px_cnt++) {
-#pragma HLS LOOP_TRIPCOUNT min = 1 max = RowsA / 2
+#pragma HLS LOOP_TRIPCOUNT min = 1 max = (RowsA/2)
 #pragma HLS PIPELINE II = QRF_TRAITS::CALC_ROT_II
             px_row1 = CONFIG.SEQUENCE[seq_cnt][0];
             px_row2 = CONFIG.SEQUENCE[seq_cnt][1];
@@ -784,7 +787,7 @@ px:
 
     rotate:
         for (int px_cnt = 0; px_cnt < CONFIG.BATCH_CNTS[batch_num]; px_cnt++) {
-#pragma HLS LOOP_TRIPCOUNT min = 1 max = RowsA / 2
+#pragma HLS LOOP_TRIPCOUNT min = 1 max = (RowsA/2)
             G_delay[0][0] = rotations[0].read();
             G_delay[0][1] = rotations[1].read();
             G_delay[1][0] = rotations[2].read();

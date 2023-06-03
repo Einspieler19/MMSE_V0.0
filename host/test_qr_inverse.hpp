@@ -118,7 +118,7 @@ struct lapack_interface<std::complex<ap_fixed<W, I, Q, O, N> > > {
     }
 };
 
-const unsigned int NUM_MAT_TYPES = 11;
+const unsigned int NUM_MAT_TYPES = 13;
 typedef testbench_traits<MATRIX_IN_T>::BASE_T MATRIX_IN_BASE_T;
 typedef lapack_interface<MATRIX_OUT_T>::QR_INV_TYPE QR_INV_TYPE;
 typedef lapack_interface<MATRIX_OUT_T>::QR_INV_BASE_TYPE QR_INV_BASE_TYPE;
