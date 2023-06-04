@@ -83,19 +83,18 @@ func_matrixAddition2(hls::stream<MATRIX_IN_T>& matrixAStrm,
 }
 
 
-extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH,
+extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& matrixAStrm,
+								   hls::stream<MATRIX_T>& WeightsStrm,
 								   float var_Noise) {
 
 	hls::stream<MATRIX_OUT_T> matrixA_Mul_ATStrm;
-#pragma HLS STREAM variable = matrixA_Mul_ATStrm depth = 9
+#pragma HLS STREAM variable = matrixA_Mul_ATStrm depth = ROWSCOLSA*ROWSCOLSA
 
-
-//	hls::stream<MATRIX_IN_T> matrixIStrm;
-//#pragma HLS STREAM variable = matrixIStrm depth = 9
+	hls::stream<MATRIX_IN_T> matrixIStrm;
+#pragma HLS STREAM variable = matrixIStrm depth = ROWSCOLSA*ROWSCOLSA
 
 	hls::stream<MATRIX_OUT_T> matrixToInverse;
-#pragma HLS STREAM variable = matrixToInverse depth = 9
+#pragma HLS STREAM variable = matrixToInverse depth = ROWSCOLSA*ROWSCOLSA
 
 
 
@@ -106,51 +105,76 @@ extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
 
 
 	// 单位矩阵
-//
-//    MATRIX_OUT_T I[ROWSCOLSA][ROWSCOLSA]; // The identity matrix to compare against
-//	// Create I to compare against later
-//	    for (int r = 0; r < ROWSCOLSA; r++) {
-//	        for (int c = 0; c < ROWSCOLSA; c++) {
-//	            if (r == c) {
-//	                I[r][c].real(var_Noise);
-//	                I[r][c].imag(0.0);
-//	            } else {
-//	                I[r][c] = 0.0;
-//	            }
-//	        }
-//	    }
-//
-//        for (int r = 0; r < ROWSCOLSA; r++) {
-//            for (int c = 0; c < ROWSCOLSA; c++) {
-//                matrixIStrm.write(I[r][c]);
-//            }
-//        }
-//	func_matrixAddition(matrixA_Mul_ATStrm,
-//    					matrixIStrm,
-//						matrixToInverse);
+
+    MATRIX_OUT_T I[ROWSCOLSA][ROWSCOLSA]; // The identity matrix to compare against
+	// Create I to compare against later
+	    for (int r = 0; r < ROWSCOLSA; r++) {
+	        for (int c = 0; c < ROWSCOLSA; c++) {
+	            if (r == c) {
+	                I[r][c].real(var_Noise);
+	                I[r][c].imag(0.0);
+	            } else {
+	                I[r][c] = 0.0;
+	            }
+	        }
+	    }
+
+        for (int r = 0; r < ROWSCOLSA; r++) {
+            for (int c = 0; c < ROWSCOLSA; c++) {
+                matrixIStrm.write(I[r][c]);
+            }
+        }
+	func_matrixAddition(matrixA_Mul_ATStrm,
+    					matrixIStrm,
+						matrixToInverse);
 
 
-	func_matrixAddition2(matrixA_Mul_ATStrm,
-							matrixToInverse,
-							var_Noise);
+//	func_matrixAddition2(matrixA_Mul_ATStrm,
+//							matrixToInverse,
+//							var_Noise);
 
 	int is_singular = 0;
-//    qr_inverse_return = func_qr_inverse(matrixToInverse, matrixMMSEH);
-    xf::solver::qrInverse<ROWSCOLSA, MATRIX_IN_T, MATRIX_OUT_T>(matrixToInverse, matrixMMSEH, is_singular);
+//    qr_inverse_return = func_qr_inverse(matrixToInverse, WeightsStrm);
+    xf::solver::qrInverse<ROWSCOLSA, MATRIX_IN_T, MATRIX_T>(matrixToInverse, WeightsStrm, is_singular);
     return is_singular;
 
 }
 
+void my_Precoder(hls::stream<MATRIX_T>& WeightsStrm,
+									hls::stream<MATRIX_IN_T>& InputBitStrm,
+								   hls::stream<MATRIX_OUT_T>& precodedMatrixStrm) {
+	matrixMultiply<NoTranspose, NoTranspose, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, N_FRAME, ROWSCOLSA, N_FRAME,
+	MATRIX_IN_T, MATRIX_OUT_T>(WeightsStrm, InputBitStrm, precodedMatrixStrm);
+}
 
+extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
+									hls::stream<MATRIX_IN_T>& InputBitStrm,
+									hls::stream<MATRIX_T>& O_WeightsStrm,
+								   hls::stream<MATRIX_OUT_T>& precodedMatrixStrm,
+								   float var_Noise) {
 
+	hls::stream<MATRIX_T> WeightsStrm;
+#pragma HLS STREAM variable = WeightsStrm depth = ROWSCOLSA*ROWSCOLSA
+	hls::stream<MATRIX_T> WeightsStrm2;
+#pragma HLS STREAM variable = WeightsStrm depth = ROWSCOLSA*ROWSCOLSA
 
-// 2 Matrices
+	int qr_inverse_return = 0;
+	qr_inverse_return = compute_Weights(matrixAStrm, WeightsStrm, var_Noise);
 
-//extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
-//									hls::stream<MATRIX_IN_T>& matrixBStrm,
-//                                   hls::stream<MATRIX_OUT_T>& matrixMultABStrm) {
-//
-//	matrixMultiply<Transpose, ConjugateTranspose, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA,
-//	MATRIX_IN_T, MATRIX_OUT_T>(matrixAStrm, matrixBStrm,matrixMultABStrm);
-//    return 0;
-//}
+	MATRIX_IN_T temp[ROWSCOLSA][ROWSCOLSA];
+    for (int r = 0; r < ROWSCOLSA; r++) {
+        for (int c = 0; c < ROWSCOLSA; c++) {
+        	WeightsStrm.read(temp[r][c]);
+        	O_WeightsStrm.write(temp[r][c]);
+        }
+    }
+    for (int r = 0; r < ROWSCOLSA; r++) {
+        for (int c = 0; c < ROWSCOLSA; c++) {
+        	WeightsStrm.write(temp[r][c]);
+        }
+    }
+
+	my_Precoder(WeightsStrm, InputBitStrm, precodedMatrixStrm);
+	return qr_inverse_return;
+}
+

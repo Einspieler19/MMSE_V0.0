@@ -44,14 +44,17 @@ int main() {
 
 
     // Matrix arrays
-    MATRIX_IN_T A[ROWSCOLSA][ROWSCOLSA]; // The input array.  Cast from A_generated
+    MATRIX_IN_T A[ROWSCOLSA][ROWSCOLSA]; // The Channel Matrix.  Cast from A_generated
 
     MATRIX_OUT_T Weights[ROWSCOLSA][ROWSCOLSA];          // The inverse result from the DUT
-    MATRIX_OUT_T Weights_expected[ROWSCOLSA][ROWSCOLSA]; // The inverse result from LAPACK in target format
+    MATRIX_OUT_T Weights_expected[ROWSCOLSA][ROWSCOLSA]; // The inverse result from REF in target format
 
+    MATRIX_OUT_T PrecodedMMSE[ROWSCOLSA][N_FRAME]; // The inverse result from REF in target format
     // Test variables
     QR_INV_TYPE A_cast[ROWSCOLSA][ROWSCOLSA]; // Cast A back to LAPACK compatible type for analysis
     // A切换到另一种数据类型，用于求A的norm
+
+    MATRIX_IN_T InputBits[ROWSCOLSA][N_FRAME]; // The input Bitstream array.
 
     QR_INV_TYPE I_delta[ROWSCOLSA][ROWSCOLSA];
 	// 差矩阵1
@@ -87,6 +90,26 @@ int main() {
            ROWSCOLSA, ROWSCOLSA);
 
 
+
+    // Read input matrix and golden matrix from files
+    // 找根路径
+    std::string data_path = std::string(DATA_PATH);
+    std::string base_path;
+
+    base_path = data_path.append("/");
+
+    std::string file_InputBits =
+        base_path + "4_10_QAM_Input_BitStream" + ".dat";
+
+	// 文件size, 读取的参数
+    int InputBits_size = ROWSCOLSA * N_FRAME;
+
+	// 数组指针, 读取的参数
+    MATRIX_IN_T* InputBits_ptr = reinterpret_cast<MATRIX_IN_T*>(InputBits);
+
+	// 读取
+    readTxt(file_InputBits, InputBits_ptr, InputBits_size);
+
                 // 循环读文件
                 // ====================================================================
     //---------------- New code post-test review ----------
@@ -100,10 +123,6 @@ int main() {
                 }
 
 //====================================================================
-                // Read input matrix and golden matrix from files
-                // 找根路径
-                std::string data_path = std::string(DATA_PATH);
-                std::string base_path;
 
 
 				// 是哪个数据类型的，从哪读数据
@@ -144,6 +163,8 @@ int main() {
 
                 // 进出DUT的流
                 hls::stream<MATRIX_IN_T> matrixAStrm;
+                hls::stream<MATRIX_IN_T> InputBitStrm;
+                hls::stream<MATRIX_OUT_T> WeightsStrm;
                 hls::stream<MATRIX_OUT_T> matrixMMSEH;
 
 
@@ -154,18 +175,32 @@ int main() {
                     }
                 }
 
+                // 写入流
+                for (int r = 0; r < ROWSCOLSA; r++) {
+                    for (int c = 0; c < N_FRAME; c++) {
+                    	InputBitStrm.write(InputBits[r][c]);
+                    }
+                }
+
 
                 // 噪音
                 float var_Noise = 1;
 
                 // 文件size, 读取的参数
-                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, matrixMMSEH, var_Noise);
+                qr_inverse_return = kernel_qr_inverse_0(matrixAStrm, InputBitStrm, WeightsStrm, matrixMMSEH, var_Noise);
 
 
                 // 读出流
                 for (int r = 0; r < ROWSCOLSA; r++) {
                     for (int c = 0; c < ROWSCOLSA; c++) {
-                    	matrixMMSEH.read(Weights[r][c]);
+                    	WeightsStrm.read(Weights[r][c]);
+                    }
+                }
+
+                // 读出流
+                for (int r = 0; r < ROWSCOLSA; r++) {
+                    for (int c = 0; c < N_FRAME; c++) {
+                    	matrixMMSEH.read(PrecodedMMSE[r][c]);
                     }
                 }
 
@@ -277,6 +312,9 @@ int main() {
                     printf("  Weights_delta=\n");
                     xf::solver::print_matrix<ROWSCOLSA, ROWSCOLSA, QR_INV_TYPE, xf::solver::NoTranspose>(
                         I_delta, "   ", print_precision, 1);
+                    printf("  Precoded=\n");
+                    xf::solver::print_matrix<ROWSCOLSA, N_FRAME, QR_INV_TYPE, xf::solver::NoTranspose>(
+                        PrecodedMMSE, "   ", print_precision, 1);
                     printf("  ratio= ");
                     std::cout<<I_DUT_ratio<<std::endl;
                     printf("  matched? ");

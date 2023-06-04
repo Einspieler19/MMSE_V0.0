@@ -21,34 +21,43 @@
 
 #include "dut_type.hpp"
 
-const int ROWSCOLSA = QR_INV_ROWSCOLS;
+//const int ROWSCOLSA = QR_INV_ROWSCOLS;
+const int ROWSCOLSA = 8;
+const int N_FRAME = 10;
 
 extern "C" int func_matrixMultiply(hls::stream<MATRIX_IN_T>& A,
                                    hls::stream<MATRIX_OUT_T>& B);
 extern "C" int func_qr_inverse(hls::stream<MATRIX_IN_T>& matrixAStrm,
                                    hls::stream<MATRIX_OUT_T>& matrixInverseAStrm);
-void
-func_matrixAddition(hls::stream<MATRIX_IN_T>& matrixAStrm,
-					hls::stream<MATRIX_IN_T>& matrixBStrm,
-		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm);
+//void
+//func_matrixAddition(hls::stream<MATRIX_IN_T>& matrixAStrm,
+//					hls::stream<MATRIX_IN_T>& matrixBStrm,
+//		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm);
 
 void
 func_matrixAddition2(hls::stream<MATRIX_IN_T>& matrixAStrm,
 		            hls::stream<MATRIX_OUT_T>& matrixAddABStrm,
 					float var_Noise);
 
-//extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_IN_T>& I, hls::stream<MATRIX_OUT_T>& B);
-extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH,
+
+//extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
+//								   hls::stream<MATRIX_OUT_T>& matrixMMSEH,
+//								   float var_Noise);
+
+void my_Precoder(hls::stream<MATRIX_T>& WeightsStrm,
+									hls::stream<MATRIX_IN_T>& InputBitStrm,
+								   hls::stream<MATRIX_OUT_T>& precodedMatrixStrm);
+
+extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& matrixAStrm,
+								   hls::stream<MATRIX_T>& WeightsStrm,
 								   float var_Noise);
 
 
-//extern "C" int
-//kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& A, hls::stream<MATRIX_IN_T>& I, hls::stream<MATRIX_OUT_T>& B);
-
-extern "C" int kernel_qr_inverse_1(hls::stream<MATRIX_IN_T>& matrixAStrm,
-									hls::stream<MATRIX_IN_T>& matrixIStrm,
-								   hls::stream<MATRIX_OUT_T>& matrixMMSEH);
+extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
+									hls::stream<MATRIX_IN_T>& InputBitStrm,
+									hls::stream<MATRIX_T>& O_WeightsStrm,
+								   hls::stream<MATRIX_OUT_T>& precodedMatrixStrm,
+								   float var_Noise);
 
 
 #endif
