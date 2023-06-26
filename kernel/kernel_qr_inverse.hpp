@@ -23,7 +23,10 @@
 
 //const int ROWSCOLSA = QR_INV_ROWSCOLS;
 const int ROWSCOLSA = 8;
-const int N_FRAME = 10;
+const int N_FRAMEperOP = 1;
+const int OP_LENGTH = 11+1;
+const int FRAME_LENGTH = 10+1;
+
 
 extern "C" int func_matrixMultiply(hls::stream<MATRIX_IN_T>& A,
                                    hls::stream<MATRIX_OUT_T>& B);
@@ -53,11 +56,13 @@ extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& matrixAStrm,
 								   float var_Noise);
 
 
-extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& matrixAStrm,
-									hls::stream<MATRIX_IN_T>& InputBitStrm,
-									hls::stream<MATRIX_T>& O_WeightsStrm,
-								   hls::stream<MATRIX_OUT_T>& precodedMatrixStrm,
-								   float var_Noise);
+extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& in_channelMatrix_Strm,
+									hls::stream<MATRIX_IN_T>& in_BitStrm,
+									hls::stream<MATRIX_T>& in_weights_Strm,
+									hls::stream<MATRIX_T>& out_weightsUpdate_Strm,
+								   hls::stream<MATRIX_OUT_T>& out_precodedMatrixStrm,
+								   float var_Noise,
+								   int flag) ;
 
 
 #endif
