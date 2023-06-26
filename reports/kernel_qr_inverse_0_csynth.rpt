@@ -1,0 +1,162 @@
+
+
+================================================================
+== Vitis HLS Report for 'kernel_qr_inverse_0'
+================================================================
+* Date:           Mon Jun 26 01:25:33 2023
+
+* Version:        2022.2 (Build 3670227 on Oct 13 2022)
+* Project:        qr_inverse_test.prj
+* Solution:       sol1 (Vivado IP Flow Target)
+* Product family: zynquplus
+* Target device:  xczu9eg-ffvb1156-2-e
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+----------+----------+------------+
+    |  Clock |  Target  | Estimated| Uncertainty|
+    +--------+----------+----------+------------+
+    |ap_clk  |  10.00 ns|  7.114 ns|     2.70 ns|
+    +--------+----------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+-----------+-----+------+---------+
+    |  Latency (cycles) |  Latency (absolute)  |  Interval  | Pipeline|
+    |   min   |   max   |    min   |    max    | min |  max |   Type  |
+    +---------+---------+----------+-----------+-----+------+---------+
+    |      231|     5222|  2.310 us|  52.220 us|  232|  5223|       no|
+    +---------+---------+----------+-----------+-----+------+---------+
+
+    + Detail: 
+        * Instance: 
+        +-----------------------------+-------------------+---------+---------+-----------+-----------+------+------+---------+
+        |                             |                   |  Latency (cycles) |   Latency (absolute)  |   Interval  | Pipeline|
+        |           Instance          |       Module      |   min   |   max   |    min    |    max    |  min |  max |   Type  |
+        +-----------------------------+-------------------+---------+---------+-----------+-----------+------+------+---------+
+        |grp_matrixMultiply_1_fu_78   |matrixMultiply_1   |      230|      230|   2.300 us|   2.300 us|   230|   230|       no|
+        |grp_compute_Weights_1_fu_88  |compute_Weights_1  |     2796|     5221|  27.960 us|  52.210 us|  2796|  5221|       no|
+        +-----------------------------+-------------------+---------+---------+-----------+-----------+------+------+---------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+------+--------+--------+-----+
+|       Name      | BRAM_18K|  DSP |   FF   |   LUT  | URAM|
++-----------------+---------+------+--------+--------+-----+
+|DSP              |        -|     -|       -|       -|    -|
+|Expression       |        -|     -|       0|      22|    -|
+|FIFO             |        -|     -|       -|       -|    -|
+|Instance         |      110|   116|   36393|   33023|    0|
+|Memory           |        -|     -|       -|       -|    -|
+|Multiplexer      |        -|     -|       -|      59|    -|
+|Register         |        -|     -|       5|       -|    -|
++-----------------+---------+------+--------+--------+-----+
+|Total            |      110|   116|   36398|   33104|    0|
++-----------------+---------+------+--------+--------+-----+
+|Available        |     1824|  2520|  548160|  274080|    0|
++-----------------+---------+------+--------+--------+-----+
+|Utilization (%)  |        6|     4|       6|      12|    0|
++-----------------+---------+------+--------+--------+-----+
+
++ Detail: 
+    * Instance: 
+    +-----------------------------+-------------------+---------+----+-------+-------+-----+
+    |           Instance          |       Module      | BRAM_18K| DSP|   FF  |  LUT  | URAM|
+    +-----------------------------+-------------------+---------+----+-------+-------+-----+
+    |grp_compute_Weights_1_fu_88  |compute_Weights_1  |      106|  96|  32350|  28633|    0|
+    |grp_matrixMultiply_1_fu_78   |matrixMultiply_1   |        4|  20|   4043|   4390|    0|
+    +-----------------------------+-------------------+---------+----+-------+-------+-----+
+    |Total                        |                   |      110| 116|  36393|  33023|    0|
+    +-----------------------------+-------------------+---------+----+-------+-------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +---------------------------------+----------+----+---+----+------------+------------+
+    |          Variable Name          | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +---------------------------------+----------+----+---+----+------------+------------+
+    |icmp_ln198_fu_122_p2             |      icmp|   0|  0|  20|          32|           1|
+    |ap_block_state2_on_subcall_done  |        or|   0|  0|   2|           1|           1|
+    +---------------------------------+----------+----+---+----+------------+------------+
+    |Total                            |          |   0|  0|  22|          33|           2|
+    +---------------------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +------------------------------+----+-----------+-----+-----------+
+    |             Name             | LUT| Input Size| Bits| Total Bits|
+    +------------------------------+----+-----------+-----+-----------+
+    |ap_NS_fsm                     |  14|          3|    1|          3|
+    |in_BitStrm_read               |   9|          2|    1|          2|
+    |in_channelMatrix_Strm_read    |   9|          2|    1|          2|
+    |in_weights_Strm_read          |   9|          2|    1|          2|
+    |out_precodedMatrixStrm_write  |   9|          2|    1|          2|
+    |out_weightsUpdate_Strm_write  |   9|          2|    1|          2|
+    +------------------------------+----+-----------+-----+-----------+
+    |Total                         |  59|         13|    6|         13|
+    +------------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +------------------------------------------+---+----+-----+-----------+
+    |                   Name                   | FF| LUT| Bits| Const Bits|
+    +------------------------------------------+---+----+-----+-----------+
+    |ap_CS_fsm                                 |  2|   0|    2|          0|
+    |grp_compute_Weights_1_fu_88_ap_start_reg  |  1|   0|    1|          0|
+    |grp_matrixMultiply_1_fu_78_ap_start_reg   |  1|   0|    1|          0|
+    |icmp_ln198_reg_133                        |  1|   0|    1|          0|
+    +------------------------------------------+---+----+-----+-----------+
+    |Total                                     |  5|   0|    5|          0|
+    +------------------------------------------+---+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-------------------------------+-----+-----+------------+------------------------+--------------+
+|           RTL Ports           | Dir | Bits|  Protocol  |      Source Object     |    C Type    |
++-------------------------------+-----+-----+------------+------------------------+--------------+
+|ap_clk                         |   in|    1|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|ap_rst                         |   in|    1|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|ap_start                       |   in|    1|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|ap_done                        |  out|    1|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|ap_idle                        |  out|    1|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|ap_ready                       |  out|    1|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|ap_return                      |  out|   32|  ap_ctrl_hs|     kernel_qr_inverse_0|  return value|
+|in_channelMatrix_Strm_dout     |   in|   64|     ap_fifo|   in_channelMatrix_Strm|       pointer|
+|in_channelMatrix_Strm_empty_n  |   in|    1|     ap_fifo|   in_channelMatrix_Strm|       pointer|
+|in_channelMatrix_Strm_read     |  out|    1|     ap_fifo|   in_channelMatrix_Strm|       pointer|
+|in_BitStrm_dout                |   in|   64|     ap_fifo|              in_BitStrm|       pointer|
+|in_BitStrm_empty_n             |   in|    1|     ap_fifo|              in_BitStrm|       pointer|
+|in_BitStrm_read                |  out|    1|     ap_fifo|              in_BitStrm|       pointer|
+|in_weights_Strm_dout           |   in|   64|     ap_fifo|         in_weights_Strm|       pointer|
+|in_weights_Strm_empty_n        |   in|    1|     ap_fifo|         in_weights_Strm|       pointer|
+|in_weights_Strm_read           |  out|    1|     ap_fifo|         in_weights_Strm|       pointer|
+|out_weightsUpdate_Strm_din     |  out|   64|     ap_fifo|  out_weightsUpdate_Strm|       pointer|
+|out_weightsUpdate_Strm_full_n  |   in|    1|     ap_fifo|  out_weightsUpdate_Strm|       pointer|
+|out_weightsUpdate_Strm_write   |  out|    1|     ap_fifo|  out_weightsUpdate_Strm|       pointer|
+|out_precodedMatrixStrm_din     |  out|   64|     ap_fifo|  out_precodedMatrixStrm|       pointer|
+|out_precodedMatrixStrm_full_n  |   in|    1|     ap_fifo|  out_precodedMatrixStrm|       pointer|
+|out_precodedMatrixStrm_write   |  out|    1|     ap_fifo|  out_precodedMatrixStrm|       pointer|
+|var_Noise                      |   in|   32|     ap_none|               var_Noise|        scalar|
+|flag                           |   in|   32|     ap_none|                    flag|        scalar|
++-------------------------------+-----+-----+------------+------------------------+--------------+
+
