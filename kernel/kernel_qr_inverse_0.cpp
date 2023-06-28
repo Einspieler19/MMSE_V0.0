@@ -86,7 +86,7 @@ func_matrixAddition2(hls::stream<MATRIX_IN_T>& in_channelMatrix_Strm,
 extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& in_channelMatrix_Strm,
 								   hls::stream<MATRIX_T>& in_weights_Strm,
 								   float var_Noise) {
-
+#pragma HLS DATAFLOW
 	hls::stream<MATRIX_OUT_T> matrixA_Mul_ATStrm;
 #pragma HLS STREAM variable = matrixA_Mul_ATStrm depth = ROWSCOLSA*ROWSCOLSA
 
@@ -100,6 +100,8 @@ extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& in_channelMatrix_Strm,
 #pragma HLS STREAM variable = inv_Strm depth = ROWSCOLSA*ROWSCOLSA
 
 	hls::stream<MATRIX_OUT_T> ChannelMatrix_Strm;
+#pragma HLS STREAM variable = ChannelMatrix_Strm depth = ROWSCOLSA*ROWSCOLSA
+	hls::stream<MATRIX_OUT_T> ChannelMatrix_Strm2;
 #pragma HLS STREAM variable = ChannelMatrix_Strm depth = ROWSCOLSA*ROWSCOLSA
 
 	MATRIX_T ChannelMatrix[ROWSCOLSA][ROWSCOLSA];
@@ -155,7 +157,7 @@ extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& in_channelMatrix_Strm,
 
     for (int r = 0; r < ROWSCOLSA; r++) {
         for (int c = 0; c < ROWSCOLSA; c++) {
-        	ChannelMatrix_Strm.write(ChannelMatrix[r][c]);
+        	ChannelMatrix_Strm2.write(ChannelMatrix[r][c]);
         }
     }
 
@@ -163,7 +165,7 @@ extern "C" int compute_Weights(hls::stream<MATRIX_IN_T>& in_channelMatrix_Strm,
 //	MATRIX_IN_T, MATRIX_OUT_T>(inv_Strm, ChannelMatrix_Strm, in_weights_Strm);
 
 	matrixMultiply<ConjugateTranspose, NoTranspose, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA, ROWSCOLSA,
-	MATRIX_IN_T, MATRIX_OUT_T>(ChannelMatrix_Strm, inv_Strm,  in_weights_Strm);
+	MATRIX_IN_T, MATRIX_OUT_T>(ChannelMatrix_Strm2, inv_Strm,  in_weights_Strm);
 
 
     return is_singular;
@@ -186,12 +188,10 @@ extern "C" int kernel_qr_inverse_0(hls::stream<MATRIX_IN_T>& in_channelMatrix_St
 								   hls::stream<MATRIX_OUT_T>& out_precodedMatrixStrm,
 								   float var_Noise,
 								   int flag) {
-
+#pragma HLS DATAFLOW
 #pragma HLS STREAM variable = in_weights_Strm depth = ROWSCOLSA*ROWSCOLSA
 
 	const MATRIX_T Weights[ROWSCOLSA][ROWSCOLSA];          // The inverse result from the DUT
-
-
 
 
 	// update W
